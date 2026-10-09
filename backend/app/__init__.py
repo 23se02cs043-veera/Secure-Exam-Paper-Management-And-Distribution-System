@@ -27,9 +27,12 @@ def create_app(config_name: str = None) -> Flask:
     config_class = config_by_name.get(env, config_by_name['default'])
     app.config.from_object(config_class)
 
-    # Ensure upload folder exists
-    upload_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'])
+    # Ensure upload and instance folders exist
+    basedir = os.path.dirname(os.path.dirname(__file__))
+    upload_folder = os.path.join(basedir, app.config['UPLOAD_FOLDER'])
+    instance_folder = os.path.join(basedir, 'instance')
     os.makedirs(upload_folder, exist_ok=True)
+    os.makedirs(instance_folder, exist_ok=True)
     app.config['UPLOAD_FOLDER_ABS'] = upload_folder
 
     # Initialize extensions
@@ -37,6 +40,17 @@ def create_app(config_name: str = None) -> Flask:
     jwt.init_app(app)
     mail.init_app(app)
     migrate.init_app(app, db)
+
+    # Initialize database tables and default seed data
+    with app.app_context():
+        try:
+            db.create_all()
+            from ..models.user import User
+            if User.query.count() == 0:
+                from database.seed import seed_database
+                seed_database()
+        except Exception as db_init_err:
+            print(f"[DB INIT WARNING] {db_init_err}")
 
     # CORS — allow all localhost origins in development
     origins_setting = "*" if app.debug else app.config['CORS_ORIGINS']

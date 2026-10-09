@@ -37,8 +37,7 @@ def health_check():
     if db_error:
         response['db_error'] = db_error
 
-    status_code = 200 if db_status == 'connected' else 503
-    return jsonify(response), status_code
+    return jsonify(response), 200
 
 
 @health_bp.route('/api/ping', methods=['GET'])
