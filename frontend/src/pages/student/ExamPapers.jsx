@@ -28,7 +28,7 @@ function ExamPapers() {
 
   useEffect(() => {
     fetchReleased(true);
-    const refreshTimer = setInterval(() => fetchReleased(), 5000);
+    const refreshTimer = setInterval(() => fetchReleased(), 2000);
     return () => clearInterval(refreshTimer);
   }, []);
 

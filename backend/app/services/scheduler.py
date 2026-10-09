@@ -23,7 +23,7 @@ def init_scheduler(app):
         scheduler.add_job(
             func=_check_punctual_releases_job,
             trigger='interval',
-            seconds=5,
+            seconds=2,
             id='check_punctual_releases',
             replace_existing=True,
             name='Punctually trigger due paper releases'
@@ -153,7 +153,7 @@ def _auto_expire_papers_job():
 
 
 def _check_punctual_releases_job():
-    """Auto-release papers whose scheduled time has arrived."""
+    """Auto-release papers whose scheduled time has arrived in real-time."""
     global _app
     if not _app:
         return
@@ -161,18 +161,20 @@ def _check_punctual_releases_job():
         try:
             from .. import db
             from ..models.paper_release import PaperRelease
-            now = datetime.utcnow()
+            now_utc = datetime.utcnow()
+            now_local = datetime.now()
 
+            # Check both UTC and local naive times for punctual release
             due_releases = PaperRelease.query.filter(
                 PaperRelease.is_released == False,
                 PaperRelease.is_locked == False,
-                PaperRelease.scheduled_release_time <= now
+                ((PaperRelease.scheduled_release_time <= now_utc) | (PaperRelease.scheduled_release_time <= now_local))
             ).all()
 
             for release in due_releases:
                 if release.paper and not release.paper.is_deleted and not release.paper.is_locked:
                     release.is_released = True
-                    release.actual_release_time = now
+                    release.actual_release_time = now_utc
                     notes = release.release_notes or ''
                     if '[Punctually released by automated scheduler]' not in notes:
                         release.release_notes = (notes + ' [Punctually released by automated scheduler]').strip()

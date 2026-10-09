@@ -29,7 +29,7 @@ function StudentDashboard() {
 
   useEffect(() => {
     fetchDashboard(true);
-    const refreshTimer = setInterval(() => fetchDashboard(), 5000);
+    const refreshTimer = setInterval(() => fetchDashboard(), 2000);
     return () => clearInterval(refreshTimer);
   }, []);
 
