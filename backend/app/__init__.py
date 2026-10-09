@@ -45,10 +45,15 @@ def create_app(config_name: str = None) -> Flask:
     with app.app_context():
         try:
             db.create_all()
-            from ..models.user import User
+            from .models.user import User
             if User.query.count() == 0:
-                from database.seed import seed_database
-                seed_database()
+                try:
+                    import sys
+                    sys.path.insert(0, basedir)
+                    from database.seed import seed_database
+                    seed_database()
+                except Exception as seed_err:
+                    print(f"[SEED WARNING] {seed_err}")
         except Exception as db_init_err:
             print(f"[DB INIT WARNING] {db_init_err}")
 

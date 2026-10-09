@@ -5,7 +5,7 @@ services:
     plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn --workers 1 --threads 4 wsgi:app
+    startCommand: gunicorn --workers 1 --threads 4 run:app
     healthCheckPath: /api/health
     envVars:
       - key: FLASK_ENV
@@ -21,7 +21,7 @@ services:
       - key: FRONTEND_URL
         value: https://secure-exam-frontend.onrender.com
       - key: BACKEND_URL
-        value: https://secure-exam-api.onrender.com
+        value: https://secure-exam-api-apdl.onrender.com
 
   - type: web
     name: secure-exam-frontend
@@ -31,7 +31,7 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        value: https://secure-exam-api.onrender.com/api
+        value: https://secure-exam-api-apdl.onrender.com/api
     routes:
       - type: rewrite
         source: /*
