@@ -150,7 +150,12 @@ def release_now(paper_id):
     user = g.current_user
     paper = Paper.query.filter_by(id=paper_id, is_deleted=False).first_or_404()
 
-    data = request.get_json() or {}
+    # Unlock paper if locked
+    paper.is_locked = False
+    paper.locked_at = None
+    paper.locked_reason = None
+
+    data = request.get_json(silent=True) or {}
     expiry_time_str = data.get('expiry_time')
 
     expiry_time = None
@@ -163,15 +168,37 @@ def release_now(paper_id):
         except ValueError:
             pass
 
-    release = PaperRelease(
-        paper_id=paper_id,
-        scheduled_release_time=datetime.utcnow(),
-        actual_release_time=datetime.utcnow(),
-        released_by_id=user.id,
-        expiry_time=expiry_time,
-        is_released=True,
-    )
-    db.session.add(release)
+    # Cancel any active scheduled background jobs for this paper
+    from ..services.scheduler import cancel_scheduled_release
+    existing_releases = PaperRelease.query.filter_by(paper_id=paper_id).all()
+    for rel in existing_releases:
+        if rel.scheduler_job_id:
+            cancel_scheduled_release(rel.scheduler_job_id)
+        rel.is_released = True
+        rel.actual_release_time = datetime.utcnow()
+        rel.is_locked = False
+
+    # Get or create the latest release record
+    release = PaperRelease.query.filter_by(paper_id=paper_id).order_by(PaperRelease.id.desc()).first()
+    if not release:
+        release = PaperRelease(
+            paper_id=paper_id,
+            scheduled_release_time=datetime.utcnow(),
+            actual_release_time=datetime.utcnow(),
+            released_by_id=user.id,
+            expiry_time=expiry_time,
+            is_released=True,
+            is_locked=False
+        )
+        db.session.add(release)
+    else:
+        release.scheduled_release_time = datetime.utcnow()
+        release.actual_release_time = datetime.utcnow()
+        release.released_by_id = user.id
+        release.expiry_time = expiry_time
+        release.is_released = True
+        release.is_locked = False
+
     db.session.flush()
 
     # Send notifications to students

@@ -48,8 +48,7 @@ class Paper(db.Model):
 
     def to_dict(self) -> dict:
         from ..models.paper_release import PaperRelease
-        scheduled_release = self.releases.filter_by(is_released=False, is_locked=False).order_by(PaperRelease.created_at.desc()).first()
-        latest_release = scheduled_release or self.releases.order_by(PaperRelease.created_at.desc()).first()
+        latest_release = self.releases.order_by(PaperRelease.id.desc()).first()
 
         return {
             'id': self.id,

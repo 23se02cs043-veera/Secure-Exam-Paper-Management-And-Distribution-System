@@ -12,7 +12,7 @@ student_bp = Blueprint('student', __name__, url_prefix='/api/student')
 
 
 def _get_classified_student_papers():
-    """Evaluates each active paper by its LATEST release record ONLY and classifies it into released vs upcoming without any duplication."""
+    """Evaluates each active paper and classifies it into released vs upcoming without duplication."""
     from ..models.paper import Paper
     from ..models.paper_release import PaperRelease
 
@@ -22,16 +22,17 @@ def _get_classified_student_papers():
     upcoming_list = []
 
     for p in active_papers:
-        # Fetch ONLY the single latest release record for this paper
-        latest_rel = PaperRelease.query.filter_by(paper_id=p.id).order_by(PaperRelease.created_at.desc()).first()
-        if not latest_rel or latest_rel.is_locked or latest_rel.is_expired():
+        # Check if there is an active released record
+        released_rel = PaperRelease.query.filter_by(paper_id=p.id, is_released=True, is_locked=False).order_by(PaperRelease.id.desc()).first()
+        if released_rel and not released_rel.is_expired():
+            released_list.append(released_rel.to_dict())
             continue
 
-        if latest_rel.is_released:
-            released_list.append(latest_rel.to_dict())
-        else:
-            time_diff = (latest_rel.scheduled_release_time - datetime.utcnow()).total_seconds() if latest_rel.scheduled_release_time else 0
-            entry = latest_rel.to_dict()
+        # Otherwise check if there is an upcoming scheduled release
+        upcoming_rel = PaperRelease.query.filter_by(paper_id=p.id, is_released=False, is_locked=False).order_by(PaperRelease.id.desc()).first()
+        if upcoming_rel and not upcoming_rel.is_expired():
+            time_diff = (upcoming_rel.scheduled_release_time - datetime.utcnow()).total_seconds() if upcoming_rel.scheduled_release_time else 0
+            entry = upcoming_rel.to_dict()
             entry['countdown_seconds'] = max(0, int(time_diff))
             upcoming_list.append(entry)
 
