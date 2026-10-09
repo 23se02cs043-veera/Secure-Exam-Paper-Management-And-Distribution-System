@@ -1,0 +1,9 @@
+# Robots.txt for Secure Exam Paper Management and Distribution System
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /about
+Allow: /features
+Allow: /contact
+
+Sitemap: https://secure-exam-system.vercel.app/sitemap.xml

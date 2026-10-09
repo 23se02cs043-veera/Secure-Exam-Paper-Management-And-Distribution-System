@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: secure-exam-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --workers 1 --threads 4 wsgi:app
+    healthCheckPath: /api/health
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PUBLIC_REGISTRATION_ENABLED
+        value: "true"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: MASTER_ENCRYPTION_KEY
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://secure-exam-frontend.onrender.com
+      - key: BACKEND_URL
+        value: https://secure-exam-api.onrender.com
+
+  - type: web
+    name: secure-exam-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://secure-exam-api.onrender.com/api
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

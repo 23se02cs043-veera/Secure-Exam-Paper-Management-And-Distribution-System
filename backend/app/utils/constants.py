@@ -1,0 +1,47 @@
+# Role constants
+ROLE_SUPER_ADMIN = 'super_admin'
+ROLE_STAFF = 'staff'
+ROLE_COORDINATOR = 'coordinator'
+ROLE_STUDENT = 'student'
+ALL_ROLES = [ROLE_SUPER_ADMIN, ROLE_STAFF, ROLE_COORDINATOR, ROLE_STUDENT]
+
+# Encryption types
+ENCRYPTION_AES256GCM = 'aes256gcm'
+ENCRYPTION_AES256CBC = 'aes256cbc'
+ENCRYPTION_CHACHA20 = 'chacha20'
+ALL_ENCRYPTION_TYPES = [ENCRYPTION_AES256GCM, ENCRYPTION_AES256CBC, ENCRYPTION_CHACHA20]
+
+# File constraints
+MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024  # 100MB
+ALLOWED_EXTENSIONS = {'pdf'}
+
+# Auth
+FAILED_LOGIN_THRESHOLD = 5
+LOCKOUT_MINUTES = 30
+ACCESS_TOKEN_EXPIRES_MINUTES = 30
+REFRESH_TOKEN_EXPIRES_DAYS = 7
+
+# Alert severity
+SEVERITY_LOW = 'low'
+SEVERITY_MEDIUM = 'medium'
+SEVERITY_HIGH = 'high'
+SEVERITY_CRITICAL = 'critical'
+
+# Alert types
+ALERT_FAILED_LOGIN = 'failed_login'
+ALERT_UNAUTHORIZED = 'unauthorized_access'
+ALERT_TAMPERING = 'file_tampering'
+ALERT_SUSPICIOUS_DOWNLOAD = 'suspicious_download'
+ALERT_PANIC_LOCK = 'panic_lock'
+ALERT_BRUTE_FORCE = 'brute_force'
+
+# Notification types
+NOTIF_PAPER_RELEASED = 'paper_released'
+NOTIF_PAPER_EXPIRING = 'paper_expiring'
+NOTIF_PAPER_LOCKED = 'paper_locked'
+NOTIF_SYSTEM = 'system'
+NOTIF_SECURITY = 'security'
+
+# Pagination
+DEFAULT_PAGE_SIZE = 20
+MAX_PAGE_SIZE = 100
