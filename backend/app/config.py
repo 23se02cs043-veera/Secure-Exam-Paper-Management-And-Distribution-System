@@ -14,7 +14,7 @@ def normalize_database_url(url):
 class BaseConfig:
     """Base configuration shared across all environments."""
 
-    SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
+    SECRET_KEY = os.getenv('SECRET_KEY') or 'super-secure-production-secret-key-2026-exam-system-8841'
     DEBUG = False
     TESTING = False
 
@@ -35,7 +35,7 @@ class BaseConfig:
     }
 
     # JWT
-    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'jwt-secret-change-in-production')
+    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY') or 'super-secure-jwt-secret-key-2026-exam-system-9942'
     JWT_ALGORITHM = 'HS256'
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(seconds=int(os.getenv('JWT_ACCESS_TOKEN_EXPIRES', 1800)))
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(seconds=int(os.getenv('JWT_REFRESH_TOKEN_EXPIRES', 604800)))

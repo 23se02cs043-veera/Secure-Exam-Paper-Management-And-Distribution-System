@@ -94,104 +94,110 @@ def register():
 @auth_bp.route('/login', methods=['POST'])
 def login():
     """Authenticate user and issue JWT tokens."""
-    # Check panic lock
     try:
-        from ..services.security_service import get_active_panic_lock
-        lock = get_active_panic_lock()
-        skip_panic = request.headers.get('X-Skip-Panic-Check') == 'true'
-        if lock and lock.is_currently_active() and not skip_panic:
-            return jsonify({
-                'error': 'SYSTEM PANIC LOCKDOWN ACTIVE: All authentication and portal logins are currently locked across all accounts.',
-                'reason': lock.reason,
-                'panic_lockout': True
-            }), 503
-    except Exception as panic_err:
-        print(f"[LOGIN PANIC CHECK WARNING] {panic_err}")
-
-    data = request.get_json(silent=True) or {}
-    email = (data.get('email') or '').strip().lower()
-    password = data.get('password', '')
-    ip = request.remote_addr
-
-    if not email or not password:
-        return jsonify({'error': 'Email and password are required'}), 400
-
-    # Check brute force
-    try:
-        if check_failed_login_threshold(email, ip):
-            return jsonify({'error': 'Too many failed attempts. Account temporarily locked.'}), 429
-    except Exception as brute_err:
-        print(f"[LOGIN BRUTE CHECK WARNING] {brute_err}")
-
-    user = User.query.filter_by(email=email).first()
-
-    if not user or not verify_password(password, user.password_hash):
+        # Check panic lock
         try:
-            record_failed_login(user_id=user.id if user else None, email=email, ip_address=ip)
-            if user:
-                user.increment_failed_login()
-        except Exception as fail_err:
-            print(f"[LOGIN FAIL LOG WARNING] {fail_err}")
-        return jsonify({'error': 'Invalid email or password'}), 401
+            from ..services.security_service import get_active_panic_lock
+            lock = get_active_panic_lock()
+            skip_panic = request.headers.get('X-Skip-Panic-Check') == 'true'
+            if lock and lock.is_currently_active() and not skip_panic:
+                return jsonify({
+                    'error': 'SYSTEM PANIC LOCKDOWN ACTIVE: All authentication and portal logins are currently locked across all accounts.',
+                    'reason': lock.reason,
+                    'panic_lockout': True
+                }), 503
+        except Exception as panic_err:
+            print(f"[LOGIN PANIC CHECK WARNING] {panic_err}")
 
-    if not user.is_active:
-        return jsonify({'error': 'Account is deactivated. Contact administrator.'}), 403
+        data = request.get_json(silent=True) or {}
+        email = (data.get('email') or '').strip().lower()
+        password = data.get('password', '')
+        ip = request.remote_addr
 
-    try:
-        if user.is_locked_out():
-            return jsonify({'error': 'Account temporarily locked due to too many failed attempts.'}), 429
-    except Exception as lock_err:
-        print(f"[LOGIN LOCKOUT WARNING] {lock_err}")
+        if not email or not password:
+            return jsonify({'error': 'Email and password are required'}), 400
 
-    # Create tokens
-    additional_claims = {'role': user.role, 'email': user.email}
-    access_token = create_access_token(
-        identity=str(user.id),
-        additional_claims=additional_claims
-    )
-    refresh_token = create_refresh_token(identity=str(user.id))
+        # Check brute force
+        try:
+            if check_failed_login_threshold(email, ip):
+                return jsonify({'error': 'Too many failed attempts. Account temporarily locked.'}), 429
+        except Exception as brute_err:
+            print(f"[LOGIN BRUTE CHECK WARNING] {brute_err}")
 
-    # Store session safely
-    try:
-        refresh_hash = hashlib.sha256(refresh_token.encode()).hexdigest()
-        expires_at = datetime.utcnow() + timedelta(days=7)
-        session = UserSession(
-            user_id=user.id,
-            token_hash=hashlib.sha256(access_token.encode()).hexdigest(),
-            refresh_token_hash=refresh_hash,
-            expires_at=expires_at,
+        user = User.query.filter_by(email=email).first()
+
+        if not user or not verify_password(password, user.password_hash):
+            try:
+                record_failed_login(user_id=user.id if user else None, email=email, ip_address=ip)
+                if user:
+                    user.increment_failed_login()
+            except Exception as fail_err:
+                print(f"[LOGIN FAIL LOG WARNING] {fail_err}")
+            return jsonify({'error': 'Invalid email or password'}), 401
+
+        if not user.is_active:
+            return jsonify({'error': 'Account is deactivated. Contact administrator.'}), 403
+
+        try:
+            if user.is_locked_out():
+                return jsonify({'error': 'Account temporarily locked due to too many failed attempts.'}), 429
+        except Exception as lock_err:
+            print(f"[LOGIN LOCKOUT WARNING] {lock_err}")
+
+        # Create tokens
+        additional_claims = {'role': user.role, 'email': user.email}
+        access_token = create_access_token(
+            identity=str(user.id),
+            additional_claims=additional_claims
         )
-        db.session.add(session)
-        db.session.commit()
-    except Exception as session_err:
-        db.session.rollback()
-        print(f"[LOGIN SESSION WARNING] {session_err}")
+        refresh_token = create_refresh_token(identity=str(user.id))
 
-    # Reset failed logins safely
-    try:
-        user.reset_failed_logins()
-    except Exception as reset_err:
-        print(f"[LOGIN RESET WARNING] {reset_err}")
+        # Store session safely
+        try:
+            refresh_hash = hashlib.sha256(refresh_token.encode()).hexdigest()
+            expires_at = datetime.utcnow() + timedelta(days=7)
+            session = UserSession(
+                user_id=user.id,
+                token_hash=hashlib.sha256(access_token.encode()).hexdigest(),
+                refresh_token_hash=refresh_hash,
+                expires_at=expires_at,
+            )
+            db.session.add(session)
+            db.session.commit()
+        except Exception as session_err:
+            db.session.rollback()
+            print(f"[LOGIN SESSION WARNING] {session_err}")
 
-    try:
-        log_action(
-            user_id=user.id,
-            action='login',
-            resource_type='user',
-            resource_id=user.id,
-            ip_address=ip,
-            user_agent=request.headers.get('User-Agent')
-        )
-    except Exception as log_err:
-        print(f"[LOGIN ACTION LOG WARNING] {log_err}")
+        # Reset failed logins safely
+        try:
+            user.reset_failed_logins()
+        except Exception as reset_err:
+            print(f"[LOGIN RESET WARNING] {reset_err}")
 
-    return jsonify({
-        'access_token': access_token,
-        'refresh_token': refresh_token,
-        'token_type': 'Bearer',
-        'expires_in': 1800,
-        'user': user.to_dict()
-    }), 200
+        try:
+            log_action(
+                user_id=user.id,
+                action='login',
+                resource_type='user',
+                resource_id=user.id,
+                ip_address=ip,
+                user_agent=request.headers.get('User-Agent')
+            )
+        except Exception as log_err:
+            print(f"[LOGIN ACTION LOG WARNING] {log_err}")
+
+        return jsonify({
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+            'token_type': 'Bearer',
+            'expires_in': 1800,
+            'user': user.to_dict()
+        }), 200
+
+    except Exception as outer_err:
+        import traceback
+        print(f"[LOGIN CRITICAL ERROR] {traceback.format_exc()}")
+        return jsonify({'error': f'Login internal failure: {str(outer_err)}'}), 500
 
 
 @auth_bp.route('/refresh', methods=['POST'])
