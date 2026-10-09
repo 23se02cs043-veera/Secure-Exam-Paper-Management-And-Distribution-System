@@ -44,8 +44,18 @@ def create_app(config_name: str = None) -> Flask:
     # Initialize database tables and default seed data
     with app.app_context():
         try:
-            db.create_all()
             from .models.user import User
+            from .models.paper import Paper
+            from .models.paper_release import PaperRelease
+            from .models.audit_log import AuditLog
+            from .models.paper_access_log import PaperAccessLog
+            from .models.user_session import UserSession
+            from .models.panic_lock import PanicLock
+            from .models.notification import Notification
+            from .models.security_alert import SecurityAlert
+
+            db.create_all()
+
             if User.query.count() == 0:
                 try:
                     import sys
