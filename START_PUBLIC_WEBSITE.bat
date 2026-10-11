@@ -16,7 +16,7 @@ echo [2/3] Starting Vite Frontend Web Application (Port 3000)...
 start "Vite Frontend" cmd /c "cd frontend && npm run dev -- --host 0.0.0.0"
 
 echo [3/3] Launching Public Internet Domain Tunnel...
-timeout /t 4 /nobreak >nul
+ping 127.0.0.1 -n 5 >nul
 
 start "Public Domain Tunnel" cmd /c "node scratch_start_tunnel.js"
 

@@ -15,7 +15,7 @@ start "Flask Backend" cmd /c "cd /d \"%~dp0backend\" && python run.py"
 echo [2/2] Starting Vite Frontend Server (Port 3000)...
 start "Vite Frontend" cmd /c "cd /d \"%~dp0frontend\" && npm run dev"
 
-timeout /t 3 /nobreak >nul
+ping 127.0.0.1 -n 4 >nul
 
 echo.
 echo ====================================================================
