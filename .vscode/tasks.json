@@ -2,64 +2,21 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "1. Run Flask Backend Server",
+            "label": "🚀 Start Project (Local Backend + Frontend)",
             "type": "shell",
-            "command": "python run.py",
-            "options": {
-                "cwd": "${workspaceFolder}/backend"
+            "command": "${workspaceFolder}\\RUN_PROJECT.bat",
+            "windows": {
+                "command": "${workspaceFolder}\\RUN_PROJECT.bat"
             },
-            "isBackground": true,
             "problemMatcher": [],
-            "presentation": {
-                "reveal": "always",
-                "panel": "dedicated",
-                "group": "backend"
-            }
-        },
-        {
-            "label": "2. Run Vite Frontend Server",
-            "type": "shell",
-            "command": "npm run dev",
-            "options": {
-                "cwd": "${workspaceFolder}/frontend"
-            },
-            "isBackground": true,
-            "problemMatcher": [],
-            "presentation": {
-                "reveal": "always",
-                "panel": "dedicated",
-                "group": "frontend"
-            }
-        },
-        {
-            "label": "🚀 Start Full Project (Backend + Frontend)",
-            "dependsOn": [
-                "1. Run Flask Backend Server",
-                "2. Run Vite Frontend Server"
-            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
-        },
-        {
-            "label": "🌐 Deploy to Render Public Cloud (Git Push)",
-            "type": "shell",
-            "command": "git add . && git commit -m 'Deploy update from VS Code' && git push origin main",
-            "problemMatcher": [],
+            },
             "presentation": {
                 "reveal": "always",
-                "panel": "new"
-            }
-        },
-        {
-            "label": "⚡ Start Local Public Tunnel Website",
-            "type": "shell",
-            "command": ".\\START_PUBLIC_WEBSITE.bat",
-            "problemMatcher": [],
-            "presentation": {
-                "reveal": "always",
-                "panel": "new"
+                "panel": "new",
+                "focus": true
             }
         },
         {
@@ -69,6 +26,26 @@
             "problemMatcher": [],
             "presentation": {
                 "reveal": "silent"
+            }
+        },
+        {
+            "label": "🌐 Deploy to Render Public Cloud (Git Push)",
+            "type": "shell",
+            "command": "git add . && git commit -m \"Deploy update from VS Code\" && git push origin main",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "⚡ Start Local Public Tunnel Website",
+            "type": "shell",
+            "command": "${workspaceFolder}\\START_PUBLIC_WEBSITE.bat",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
             }
         }
     ]

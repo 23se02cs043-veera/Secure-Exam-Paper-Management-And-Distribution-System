@@ -10,10 +10,10 @@ echo.
 cd /d "%~dp0"
 
 echo [1/2] Starting Flask Backend Server (Port 5000)...
-start "Flask Backend" cmd /c "cd backend && python run.py"
+start "Flask Backend" cmd /c "cd /d \"%~dp0backend\" && python run.py"
 
 echo [2/2] Starting Vite Frontend Server (Port 3000)...
-start "Vite Frontend" cmd /c "cd frontend && npm run dev"
+start "Vite Frontend" cmd /c "cd /d \"%~dp0frontend\" && npm run dev"
 
 timeout /t 3 /nobreak >nul
 
@@ -28,5 +28,3 @@ echo ====================================================================
 echo.
 
 start http://localhost:3000
-
-pause
