@@ -61,6 +61,15 @@
                 "reveal": "always",
                 "panel": "new"
             }
+        },
+        {
+            "label": "🌍 Open Live Render Website in Browser",
+            "type": "shell",
+            "command": "cmd /c start https://secure-exam-frontend.onrender.com",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent"
+            }
         }
     ]
 }
