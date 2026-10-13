@@ -1,0 +1,39 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Python bytecode and cache
+**/__pycache__/
+*.py[cod]
+**/venv/
+**/.venv/
+
+# Node modules and build output
+**/node_modules/
+frontend/dist/
+
+# Database and instance files
+instance/
+backend/instance/
+uploads/
+backend/uploads/
+*.db
+
+# Test/lint caches
+.pytest_cache/
+.coverage
+
+# Binary executables
+cloudflared.exe
+*.exe
+
+# Local tunnel and scratch files
+scratch_start_tunnel.js
+public_domain_url.txt
+
+# Duplicate subfolder (not the real source)
+Secure Exam System/
+
+# VS Code personal settings (keep tasks and launch)
+.vscode/settings.json
